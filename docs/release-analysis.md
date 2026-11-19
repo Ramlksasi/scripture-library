@@ -2,9 +2,9 @@
 
 ## Reader and discovery
 
-The Flutter app opens to a categorized library with title and alternate-spelling search. The launch catalog covers Sanskrit works. An in-app passage contains Romanized Sanskrit followed by one English translation. Readers can swipe between passages and chapters, open the chapter picker, change the text size, and resume on the same device. External editions open on the source website.
+The Flutter app opens to a categorized library with title and alternate-spelling search. The catalog includes Sanskrit, Tamil, and the other regional-language entries in the workbook. An in-app passage contains Romanized Sanskrit followed by one English translation. Readers can swipe between passages and chapters, open the chapter picker, change the text size, and resume on the same device. External editions open on the source website.
 
-The supplied catalog contributes 688 candidate records, 19 categories, and 66 category and subcategory pairs. It contains 44 foundation candidates, 347 expansion candidates, 235 specialized candidates, and 62 research candidates. The public catalog has 12 titles across six categories, with one full in-app edition and 11 external reading links. The editorial register retains every candidate and its stable ID, including the regional-language backlog. The app uses each candidate's original category and subcategory.
+The supplied catalog contributes 688 candidate records, 19 categories, and 66 category and subcategory pairs. It contains 44 foundation candidates, 347 expansion candidates, 235 specialized candidates, and 62 research candidates. All 688 entries appear in browsing and search under their original categories and subcategories. The app matches each reading edition by the workbook ID. The bundled reading options include one full in-app edition and 11 external links. The 676 other entries show that a reading edition is pending.
 
 ## Bhagavad Gītā edition
 
@@ -20,7 +20,7 @@ Each book has one catalog document keyed by its workbook ID. It can point to a s
 
 The publisher writes a complete edition before changing the book document to point to it. The reader uses the bundled version directly when its edition ID matches and fetches other hosted editions from Firestore. Security rules allow public reads of published books and their active editions. Administrative credentials control writes. A reading position from the starter edition follows the book and verse when that reference exists in the full edition.
 
-Search indexes the published catalog in Flutter by title, aliases, and category. This keeps discovery local and accepts diacritic-free input. A future edition can use the same two-layer reader for a regional original in Roman script and an English translation.
+Search covers all titles in Flutter by title, aliases, category, subcategory, and workbook ID. This keeps discovery local and accepts diacritic-free input. A future edition can use the same two-layer reader for a regional original in Roman script and an English translation.
 
 ## Release checks
 

@@ -44,18 +44,30 @@ class Book {
     required this.title,
     required this.category,
     required this.subcategory,
-    required this.sourceName,
-    required this.sourceUrl,
-    required this.editionId,
-    required this.sample,
-    required this.sections,
-    required this.credit,
-    required List<String> aliases,
-  }) : searchIndex = normalize(
-         [title, category, subcategory, ...aliases].join(' '),
+    this.sourceName = '',
+    this.sourceUrl,
+    this.editionId,
+    this.sample = false,
+    this.sections = const [],
+    this.credit = '',
+    List<String> aliases = const [],
+  }) : _searchTitles = [title, ...aliases].map(normalize).toList(),
+       searchIndex = normalize(
+         [id, title, category, subcategory, ...aliases].join(' '),
        );
 
-  factory Book.fromJson(String id, Map<String, dynamic> json) {
+  factory Book.fromCatalog(Map<String, dynamic> json) => Book(
+    id: json['id'] as String,
+    title: json['title'] as String,
+    category: json['category'] as String,
+    subcategory: json['subcategory'] as String,
+  );
+
+  factory Book.fromJson(
+    String id,
+    Map<String, dynamic> json, {
+    Book? catalogEntry,
+  }) {
     final url = Uri.tryParse(json['sourceUrl'] as String? ?? '');
     final editionId = json['editionId'] as String?;
     final sections = (json['sections'] as List? ?? [])
@@ -74,15 +86,18 @@ class Book {
     return Book(
       id: id,
       title: json['title'] as String,
-      category: json['category'] as String,
-      subcategory: json['subcategory'] as String,
+      category: catalogEntry?.category ?? json['category'] as String,
+      subcategory: catalogEntry?.subcategory ?? json['subcategory'] as String,
       sourceName: json['sourceName'] as String? ?? '',
       sourceUrl: sourceUrl,
       editionId: editionId,
       sample: json['sample'] == true,
       sections: sections,
       credit: json['credit'] as String? ?? '',
-      aliases: (json['aliases'] as List? ?? []).cast<String>(),
+      aliases: [
+        ...(json['aliases'] as List? ?? []).cast<String>(),
+        if (catalogEntry != null) catalogEntry.title,
+      ],
     );
   }
 
@@ -96,12 +111,18 @@ class Book {
   final bool sample;
   final List<Section> sections;
   final String credit;
+  final List<String> _searchTitles;
   final String searchIndex;
 
   bool get isHosted => editionId != null;
+  bool get hasReadingEdition => isHosted || sourceUrl != null;
 
-  bool matches(String query) =>
-      normalize(query).split(' ').every(searchIndex.contains);
+  bool matches(Iterable<String> terms) => terms.every(searchIndex.contains);
+
+  int searchPriority(String query) {
+    if (_searchTitles.contains(query)) return 0;
+    return _searchTitles.any((title) => title.startsWith(query)) ? 1 : 2;
+  }
 }
 
 String normalize(String value) {
@@ -171,9 +192,26 @@ class LibraryStore {
   late final Future<Map<String, dynamic>> _bundle = _assets
       .loadString('assets/launch_library.json')
       .then((source) => jsonDecode(source) as Map<String, dynamic>);
+  late final Future<Map<String, Book>> _catalog = _assets
+      .loadString('catalog/master_catalog.json')
+      .then((source) {
+        final rows = jsonDecode(source) as List<dynamic>;
+        final entries = rows.map(
+          (row) => Book.fromCatalog(row as Map<String, dynamic>),
+        );
+        return {for (final entry in entries) entry.id: entry};
+      });
 
   Future<List<Book>> loadBooks() async {
-    final bundled = await _bundle;
+    final catalog = await _catalog;
+    final available = await _loadAvailableBooks(catalog);
+    return {
+      ...catalog,
+      for (final book in available) book.id: book,
+    }.values.toList();
+  }
+
+  Future<List<Book>> _loadAvailableBooks(Map<String, Book> catalog) async {
     final db = database;
     if (db != null) {
       try {
@@ -186,7 +224,13 @@ class LibraryStore {
           final published = <Book>[];
           for (final doc in snapshot.docs) {
             try {
-              published.add(Book.fromJson(doc.id, doc.data()));
+              published.add(
+                Book.fromJson(
+                  doc.id,
+                  doc.data(),
+                  catalogEntry: catalog[doc.id],
+                ),
+              );
             } on FormatException {
               continue;
             } on TypeError {
@@ -201,9 +245,10 @@ class LibraryStore {
         // A slow network should still leave the bundled reader accessible.
       }
     }
-    return (bundled['books'] as List).map((item) {
+    return ((await _bundle)['books'] as List).map((item) {
       final json = item as Map<String, dynamic>;
-      return Book.fromJson(json['id'] as String, json);
+      final id = json['id'] as String;
+      return Book.fromJson(id, json, catalogEntry: catalog[id]);
     }).toList();
   }
 

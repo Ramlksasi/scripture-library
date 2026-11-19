@@ -114,9 +114,19 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   categories.putIfAbsent(book.category, () => []).add(book);
                 }
                 final names = categories.keys.toList()..sort();
+                final normalizedQuery = normalize(query);
+                final terms = normalizedQuery.split(' ');
                 final results =
-                    books.where((book) => book.matches(query)).toList()
-                      ..sort((a, b) => a.title.compareTo(b.title));
+                    query.isEmpty ||
+                        snapshot.connectionState != ConnectionState.done
+                    ? const <Book>[]
+                    : (books.where((book) => book.matches(terms)).toList()
+                        ..sort((a, b) {
+                          final rank = a
+                              .searchPriority(normalizedQuery)
+                              .compareTo(b.searchPriority(normalizedQuery));
+                          return rank == 0 ? a.title.compareTo(b.title) : rank;
+                        }));
                 final hosted = books.where((book) => book.isHosted);
                 final lastBook = hosted
                     .where(
@@ -128,95 +138,113 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     )
                     .firstOrNull;
                 final featured = lastBook ?? hosted.firstOrNull;
-                return ListView(
-                  padding: const EdgeInsets.fromLTRB(24, 26, 24, 28),
-                  children: [
-                    const Text(
-                      'Scripture Library',
-                      style: TextStyle(
-                        fontFamily: serif,
-                        fontSize: 30,
-                        color: ink,
-                        letterSpacing: -0.9,
-                      ),
+                final header = <Widget>[
+                  const Text(
+                    'Scripture Library',
+                    style: TextStyle(
+                      fontFamily: serif,
+                      fontSize: 30,
+                      color: ink,
+                      letterSpacing: -0.9,
                     ),
-                    const SizedBox(height: 22),
-                    TextField(
-                      controller: _search,
-                      onChanged: (_) => setState(() {}),
-                      textInputAction: TextInputAction.search,
-                      decoration: InputDecoration(
-                        hintText: 'Search scriptures',
-                        prefixIcon: const Icon(Icons.search_rounded),
-                        suffixIcon: query.isEmpty
-                            ? null
-                            : IconButton(
-                                tooltip: 'Clear search',
-                                icon: const Icon(Icons.close_rounded),
-                                onPressed: () {
-                                  _search.clear();
-                                  setState(() {});
-                                },
+                  ),
+                  const SizedBox(height: 22),
+                  TextField(
+                    controller: _search,
+                    onChanged: (_) => setState(() {}),
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: 'Search scriptures',
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      suffixIcon: query.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: 'Clear search',
+                              icon: const Icon(Icons.close_rounded),
+                              onPressed: () {
+                                _search.clear();
+                                setState(() {});
+                              },
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  if (snapshot.connectionState != ConnectionState.done)
+                    const Center(child: CircularProgressIndicator())
+                  else if (snapshot.hasError)
+                    Center(
+                      child: TextButton(
+                        onPressed: () =>
+                            setState(() => _books = widget.store.loadBooks()),
+                        child: const Text('Reload library'),
+                      ),
+                    )
+                  else if (query.isNotEmpty) ...[
+                    if (results.isEmpty)
+                      const Text('No scriptures match your search.'),
+                  ] else ...[
+                    if (featured != null) ...[
+                      _Featured(
+                        book: featured,
+                        resume: lastBook != null,
+                        onTap: () => _openBook(featured, readDirectly: true),
+                      ),
+                      const SizedBox(height: 28),
+                    ],
+                    if (names.isEmpty)
+                      const Text('The library has no scriptures yet.')
+                    else ...[
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              'Browse',
+                              style: TextStyle(
+                                fontFamily: serif,
+                                fontSize: 23,
+                                color: ink,
                               ),
+                            ),
+                          ),
+                          Text(
+                            '${books.length} titles',
+                            style: const TextStyle(color: muted),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 22),
-                    if (snapshot.connectionState != ConnectionState.done)
-                      const Center(child: CircularProgressIndicator())
-                    else if (snapshot.hasError)
-                      Center(
-                        child: TextButton(
-                          onPressed: () =>
-                              setState(() => _books = widget.store.loadBooks()),
-                          child: const Text('Reload library'),
-                        ),
-                      )
-                    else if (query.isNotEmpty) ...[
-                      if (results.isEmpty)
-                        const Text('No scriptures match your search.'),
-                      for (final book in results)
-                        _BookTile(book: book, onTap: () => _openBook(book)),
-                    ] else ...[
-                      if (featured != null) ...[
-                        _Featured(
-                          book: featured,
-                          resume: lastBook != null,
-                          onTap: () => _openBook(featured, readDirectly: true),
-                        ),
-                        const SizedBox(height: 28),
-                      ],
-                      if (names.isEmpty)
-                        const Text('The library has no published books yet.')
-                      else ...[
-                        const Text(
-                          'Browse',
-                          style: TextStyle(
-                            fontFamily: serif,
-                            fontSize: 23,
-                            color: ink,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        for (final name in names)
-                          _CategoryTile(
-                            name: name,
-                            books: categories[name]!,
-                            onTap: () async {
-                              await Navigator.of(context).push<void>(
-                                MaterialPageRoute(
-                                  builder: (context) => CategoryScreen(
-                                    name: name,
-                                    books: categories[name]!,
-                                    onBook: _openBook,
-                                  ),
+                      const SizedBox(height: 10),
+                      for (final name in names)
+                        _CategoryTile(
+                          name: name,
+                          books: categories[name]!,
+                          onTap: () async {
+                            await Navigator.of(context).push<void>(
+                              MaterialPageRoute(
+                                builder: (context) => CategoryScreen(
+                                  name: name,
+                                  books: categories[name]!,
+                                  onBook: _openBook,
                                 ),
-                              );
-                              await _refreshLastRead();
-                            },
-                          ),
-                      ],
+                              ),
+                            );
+                            await _refreshLastRead();
+                          },
+                        ),
                     ],
                   ],
+                ];
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(24, 26, 24, 28),
+                  itemCount: header.length + results.length,
+                  itemBuilder: (context, index) {
+                    if (index < header.length) return header[index];
+                    final book = results[index - header.length];
+                    return _BookTile(
+                      book: book,
+                      showCategory: true,
+                      onTap: () => _openBook(book),
+                    );
+                  },
                 );
               },
             ),
@@ -419,30 +447,44 @@ class CategoryScreen extends StatelessWidget {
 }
 
 class _BookTile extends StatelessWidget {
-  const _BookTile({required this.book, required this.onTap});
+  const _BookTile({
+    required this.book,
+    required this.onTap,
+    this.showCategory = false,
+  });
 
   final Book book;
   final VoidCallback onTap;
+  final bool showCategory;
 
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 3),
-        title: Text(
-          book.title,
-          style: const TextStyle(fontFamily: serif, fontSize: 17),
+  Widget build(BuildContext context) {
+    final details = [
+      if (showCategory) book.category,
+      if (!book.hasReadingEdition) 'Reading edition pending',
+    ];
+    return Column(
+      children: [
+        ListTile(
+          onTap: onTap,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 3),
+          title: Text(
+            book.title,
+            style: const TextStyle(fontFamily: serif, fontSize: 17),
+          ),
+          subtitle: details.isEmpty ? null : Text(details.join(' · ')),
+          trailing: Icon(
+            !book.isHosted && book.sourceUrl != null
+                ? Icons.open_in_new
+                : Icons.chevron_right,
+            size: 18,
+            color: muted,
+          ),
         ),
-        trailing: Icon(
-          book.isHosted ? Icons.chevron_right : Icons.open_in_new,
-          size: 18,
-          color: muted,
-        ),
-      ),
-      const Divider(height: 1),
-    ],
-  );
+        const Divider(height: 1),
+      ],
+    );
+  }
 }
 
 class BookScreen extends StatelessWidget {
@@ -492,6 +534,11 @@ class BookScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
+              if (!book.hasReadingEdition)
+                const Text(
+                  'Reading edition pending',
+                  style: TextStyle(color: muted),
+                ),
               if (book.isHosted)
                 FilledButton(
                   onPressed: () => Navigator.of(context).push<void>(

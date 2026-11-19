@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
@@ -43,6 +44,30 @@ void main() {
   }
 
   test(
+    'includes every workbook ID and category alongside its reading edition',
+    () async {
+      final rows = jsonDecode(
+        File('catalog/master_catalog.json').readAsStringSync(),
+      ) as List<dynamic>;
+      final books = await TestStore().loadBooks();
+      final byId = {for (final book in books) book.id: book};
+      expect(books, hasLength(688));
+      expect(byId, hasLength(rows.length));
+      expect(books.map((book) => book.category).toSet(), hasLength(19));
+      expect(books.where((book) => book.hasReadingEdition), hasLength(12));
+      for (final row in rows) {
+        final book = byId[row['id']];
+        expect(book?.category, row['category']);
+        expect(book?.subcategory, row['subcategory']);
+        expect(
+          book?.matches(normalize(row['title'] as String).split(' ')),
+          isTrue,
+        );
+      }
+    },
+  );
+
+  test(
     'loads the complete Besant edition with consecutive verse references',
     () async {
       final store = TestStore();
@@ -73,6 +98,21 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Open source website'), findsOneWidget);
   });
+
+  testWidgets(
+    'shows the full catalog and finds a title with a pending edition',
+    (tester) async {
+      await openLibrary(tester, TestStore());
+      expect(find.text('688 titles'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'HSC-0688');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Bhagavata of Pothana'));
+      await tester.pumpAndSettle();
+      expect(find.text('Reading edition pending'), findsOneWidget);
+      expect(find.text('Open source website'), findsNothing);
+      expect(find.text('Read'), findsNothing);
+    },
+  );
 
   testWidgets('pages, changes chapter and resumes at the saved passage', (
     tester,

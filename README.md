@@ -1,6 +1,6 @@
 # Scripture Library
 
-Scripture Library is a Flutter app for browsing, finding and reading Hindu scriptures. The bundled library opens without a Firebase project. It includes the complete 18-chapter Bhagavad Gītā in Romanized Sanskrit (IAST) and Annie Besant’s English translation, plus 11 links to external editions. The full bundled edition can be read offline.
+Scripture Library is a Flutter app for browsing, finding and reading Hindu scriptures. All 688 entries from the supplied spreadsheet can be browsed and searched offline in their original 19 categories. It includes the complete 18-chapter Bhagavad Gītā in Romanized Sanskrit (IAST) and Annie Besant’s English translation, plus 11 links to external editions. The full bundled edition can be read offline. Other catalog entries show when a reading edition is pending.
 
 ## Run the app
 
@@ -28,11 +28,11 @@ firebase deploy --only firestore:rules,firestore:indexes --project YOUR_PROJECT_
 flutter run -d chrome --dart-define-from-file=firebase.local.json
 ```
 
-The published Firestore catalog replaces the bundled catalog when the server responds. The bundled catalog is available when Firestore is unconfigured or unavailable. Clients can query published books and open the currently published edition. Catalog changes use an administrator account.
+The spreadsheet catalog is always available. When Firestore responds, its published records supply the available reading options. When Firestore is unconfigured or unavailable, the app uses the bundled reading options. Clients can query published books and open the currently published edition. Catalog changes use an administrator account.
 
 ## Publish a book
 
-The catalog exported from the supplied spreadsheet is in `catalog/master_catalog.json`. Its 688 rows are candidates for edition research. The app uses the curated reading entries in `assets/launch_library.json` until Firestore is connected. An external reading link needs a direct URL to an edition that readers can open.
+The catalog exported from the supplied spreadsheet is in `catalog/master_catalog.json`. The app bundles all 688 rows for browsing and search. It attaches the bundled reading editions and links in `assets/launch_library.json` until Firestore is connected. An external reading link needs a direct URL to an edition that readers can open.
 
 Use the launch manifest as the template for a publishable book. Keep its existing catalog ID when switching from a link to a hosted edition. Assign a new edition ID whenever you revise its content. Record the source, translator and redistribution terms for both text layers in your editorial records and include any required credit in the manifest. Each passage needs a stable reference, its Roman transliteration and its English translation. Split a long chapter into numbered sections if needed.
 

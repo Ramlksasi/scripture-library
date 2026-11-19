@@ -1,7 +1,7 @@
 name: scripture_library
 description: A minimal Sanskrit scripture library and reader.
 publish_to: none
-version: 0.2.0+2
+version: 0.2.1+3
 
 environment:
   sdk: ^3.13.0
@@ -26,6 +26,7 @@ flutter:
   assets:
     - assets/launch_library.json
     - assets/LibreBaskerville-OFL.txt
+    - catalog/master_catalog.json
   fonts:
     - family: Library Serif
       fonts:
