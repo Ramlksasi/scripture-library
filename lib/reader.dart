@@ -22,6 +22,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   int _page = 0;
   int _request = 0;
   double _textSize = 22;
+  double _chapterOverscroll = 0;
   bool _controls = true;
   bool _loading = true;
   bool _failed = false;
@@ -45,7 +46,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
       // Reading is available if local settings cannot be opened.
     }
     if (!mounted) return;
-    final resume = previous?.editionId == _book.editionId ? previous : null;
+    final resume = previous?.bookId == _book.id ? previous : null;
     final section = _book.sections.indexWhere(
       (item) => item.id == resume?.sectionId,
     );
@@ -123,6 +124,36 @@ class _ReaderScreenState extends State<ReaderScreen> {
         ),
       );
     }
+  }
+
+  bool _handlePageScroll(ScrollNotification notification) {
+    if (notification.depth != 0 ||
+        notification.metrics.axis != Axis.horizontal) {
+      return false;
+    }
+    if (notification is ScrollStartNotification) {
+      _chapterOverscroll = 0;
+    } else if (notification is OverscrollNotification &&
+        notification.dragDetails != null) {
+      _chapterOverscroll += notification.overscroll;
+    } else if (notification is ScrollEndNotification &&
+        _chapterOverscroll.abs() >= 40) {
+      final direction = _chapterOverscroll.isNegative ? -1 : 1;
+      _chapterOverscroll = 0;
+      final atBoundary = direction < 0
+          ? _page == 0 && _section > 0
+          : _page == _passages.length - 1 &&
+                _section < _book.sections.length - 1;
+      if (atBoundary) {
+        final request = _request;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && !_loading && request == _request) {
+            _turn(direction);
+          }
+        });
+      }
+    }
+    return false;
   }
 
   Future<void> _pickChapter() async {
@@ -224,12 +255,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     ),
                     IconButton(
                       tooltip: 'Chapters',
-                      onPressed: _pickChapter,
+                      onPressed: ready ? _pickChapter : null,
                       icon: const Icon(Icons.format_list_bulleted_rounded),
                     ),
                     IconButton(
                       tooltip: 'Text size',
-                      onPressed: _pickSize,
+                      onPressed: ready ? _pickSize : null,
                       icon: const Icon(Icons.text_fields_rounded),
                     ),
                     const SizedBox(width: 8),
@@ -252,46 +283,50 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     ],
                   ),
                 ),
-                _ => PageView.builder(
-                  key: ValueKey(section.id),
-                  controller: _controller,
-                  itemCount: _passages.length,
-                  onPageChanged: (page) {
-                    setState(() => _page = page);
-                    _savePage(page);
-                  },
-                  itemBuilder: (context, page) {
-                    final passage = _passages[page];
-                    return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => setState(() => _controls = !_controls),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) =>
-                            SingleChildScrollView(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 30,
-                              ),
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: constraints.maxHeight,
+                _ => NotificationListener<ScrollNotification>(
+                  onNotification: _handlePageScroll,
+                  child: PageView.builder(
+                    physics: const ClampingScrollPhysics(),
+                    key: ValueKey(section.id),
+                    controller: _controller,
+                    itemCount: _passages.length,
+                    onPageChanged: (page) {
+                      setState(() => _page = page);
+                      _savePage(page);
+                    },
+                    itemBuilder: (context, page) {
+                      final passage = _passages[page];
+                      return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => setState(() => _controls = !_controls),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) =>
+                              SingleChildScrollView(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 30,
                                 ),
-                                child: Center(
-                                  child: ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxWidth: 540,
-                                    ),
-                                    child: _PassagePage(
-                                      passage: passage,
-                                      section: section.title,
-                                      textSize: _textSize,
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minHeight: constraints.maxHeight,
+                                  ),
+                                  child: Center(
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 540,
+                                      ),
+                                      child: _PassagePage(
+                                        passage: passage,
+                                        section: section.title,
+                                        textSize: _textSize,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                      ),
-                    );
-                  },
+                        ),
+                      );
+                    },
+                  ),
                 ),
               },
             ),

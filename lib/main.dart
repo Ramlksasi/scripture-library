@@ -122,7 +122,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     .where(
                       (book) =>
                           book.id == _lastRead?.bookId &&
-                          book.editionId == _lastRead?.editionId,
+                          book.sections.any(
+                            (section) => section.id == _lastRead?.sectionId,
+                          ),
                     )
                     .firstOrNull;
                 final featured = lastBook ?? hosted.firstOrNull;

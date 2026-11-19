@@ -162,11 +162,13 @@ class ReadingPosition {
 }
 
 class LibraryStore {
-  LibraryStore(this.database);
+  LibraryStore(this.database, {AssetBundle? assets})
+    : _assets = assets ?? rootBundle;
 
   final FirebaseFirestore? database;
+  final AssetBundle _assets;
   late final _preferences = SharedPreferencesAsync();
-  late final Future<Map<String, dynamic>> _bundle = rootBundle
+  late final Future<Map<String, dynamic>> _bundle = _assets
       .loadString('assets/launch_library.json')
       .then((source) => jsonDecode(source) as Map<String, dynamic>);
 
@@ -207,28 +209,22 @@ class LibraryStore {
 
   Future<List<Passage>> loadSection(Book book, String sectionId) async {
     final editionId = book.editionId!;
-    final sampleSections = (await _bundle)['sections'] as Map;
-    final List? bundled =
-        sampleSections[book.id]?[editionId]?[sectionId] as List?;
+    final bundledSections = (await _bundle)['sections'] as Map;
+    List<dynamic>? rows =
+        bundledSections[book.id]?[editionId]?[sectionId] as List?;
     final db = database;
-    List<dynamic>? rows;
-    if (db != null) {
-      try {
-        final snapshot = await db
-            .collection('books')
-            .doc(book.id)
-            .collection('editions')
-            .doc(editionId)
-            .collection('sections')
-            .doc(sectionId)
-            .get()
-            .timeout(const Duration(seconds: 8));
-        rows = snapshot.data()?['passages'] as List?;
-      } on Exception {
-        if (bundled == null) rethrow;
-      }
+    if (rows == null && db != null) {
+      final snapshot = await db
+          .collection('books')
+          .doc(book.id)
+          .collection('editions')
+          .doc(editionId)
+          .collection('sections')
+          .doc(sectionId)
+          .get()
+          .timeout(const Duration(seconds: 8));
+      rows = snapshot.data()?['passages'] as List?;
     }
-    rows ??= bundled;
     if (rows == null || rows.isEmpty) {
       throw const FormatException('Empty section');
     }
