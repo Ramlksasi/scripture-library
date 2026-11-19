@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function activeEdition(bookId, editionId) {
+      let book = get(/databases/$(database)/documents/books/$(bookId)).data;
+      return book.published == true && book.editionId == editionId;
+    }
+
+    match /books/{bookId} {
+      allow read: if resource.data.published == true;
+
+      match /editions/{editionId} {
+        allow get: if activeEdition(bookId, editionId);
+
+        match /sections/{sectionId} {
+          allow get: if activeEdition(bookId, editionId);
+        }
+      }
+    }
+  }
+}

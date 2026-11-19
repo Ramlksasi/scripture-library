@@ -1,0 +1,12 @@
+.dart_tool/
+.flutter-plugins-dependencies
+.idea/
+*.iml
+build/
+coverage/
+.firebase/
+firebase-debug.log
+firestore-debug.log
+__pycache__/
+local.properties
+firebase.local.json

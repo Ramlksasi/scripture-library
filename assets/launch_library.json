@@ -1,0 +1,155 @@
+{
+  "books": [
+    {
+      "id": "HSC-0286",
+      "title": "Bhagavad Gītā",
+      "aliases": [
+        "Bhagavad Gita",
+        "Bhagavad Geeta",
+        "Bhagwat Gita",
+        "Shrimad Bhagavad Gita"
+      ],
+      "category": "Gitas & Dialogues",
+      "subcategory": "Major Gitas",
+      "sourceName": "Heritage Scripture Server, IIT Kanpur",
+      "sourceUrl": "https://heritage.iitk.ac.in/SBG/read?script=ro",
+      "published": true,
+      "editionId": "reading-sample-v1",
+      "sample": true,
+      "credit": "Ancient Sanskrit text in IAST. English renderings prepared for this sample.",
+      "sections": [
+        {
+          "id": "2",
+          "title": "Chapter 2"
+        },
+        {
+          "id": "3",
+          "title": "Chapter 3"
+        }
+      ]
+    },
+    {
+      "id": "HSC-0197",
+      "title": "Vālmīki Rāmāyaṇa",
+      "aliases": [
+        "Valmiki Ramayana",
+        "Ramayan"
+      ],
+      "category": "Itihasa & Ramayana Traditions",
+      "subcategory": "Itihasa",
+      "sourceName": "Heritage Scripture Server, IIT Kanpur",
+      "sourceUrl": "https://heritage.iitk.ac.in/VRAM/read?script=ro",
+      "published": true
+    },
+    {
+      "id": "HSC-0316",
+      "title": "Yoga Sūtras",
+      "aliases": [
+        "Patanjali",
+        "Yoga Sutra",
+        "Yogasutra"
+      ],
+      "category": "Darshana Sutras",
+      "subcategory": "Six Darshana foundations",
+      "sourceName": "Heritage Scripture Server, IIT Kanpur",
+      "sourceUrl": "https://heritage.iitk.ac.in/YGS/read?script=ro",
+      "published": true
+    },
+    {
+      "id": "HSC-0040",
+      "title": "Īśa Upaniṣad",
+      "aliases": [
+        "Isha Upanishad",
+        "Ishavasya",
+        "Isavasya"
+      ],
+      "category": "Upanishads",
+      "subcategory": "Principal ten (Mukhya)",
+      "sourceName": "Heritage Scripture Server, IIT Kanpur",
+      "sourceUrl": "https://heritage.iitk.ac.in/ISU/read?script=ro",
+      "published": true
+    },
+    {
+      "id": "HSC-0041",
+      "title": "Kena Upaniṣad",
+      "aliases": [
+        "Kena Upanishad"
+      ],
+      "category": "Upanishads",
+      "subcategory": "Principal ten (Mukhya)",
+      "sourceName": "Heritage Scripture Server, IIT Kanpur",
+      "sourceUrl": "https://heritage.iitk.ac.in/KNU/read?script=ro",
+      "published": true
+    },
+    {
+      "id": "HSC-0042",
+      "title": "Kaṭha Upaniṣad",
+      "aliases": [
+        "Katha Upanishad",
+        "Kathopanishad"
+      ],
+      "category": "Upanishads",
+      "subcategory": "Principal ten (Mukhya)",
+      "sourceName": "Heritage Scripture Server, IIT Kanpur",
+      "sourceUrl": "https://heritage.iitk.ac.in/KTU/read?script=ro",
+      "published": true
+    },
+    {
+      "id": "HSC-0044",
+      "title": "Muṇḍaka Upaniṣad",
+      "aliases": [
+        "Mundaka Upanishad"
+      ],
+      "category": "Upanishads",
+      "subcategory": "Principal ten (Mukhya)",
+      "sourceName": "Heritage Scripture Server, IIT Kanpur",
+      "sourceUrl": "https://heritage.iitk.ac.in/MNU/read?script=ro",
+      "published": true
+    }
+  ],
+  "sections": {
+    "HSC-0286": {
+      "reading-sample-v1": {
+        "2": [
+          {
+            "reference": "2.47",
+            "roman": "karmaṇy evādhikāras te mā phaleṣu kadācana\nmā karma-phala-hetur bhūr mā te saṅgo ’stv akarmaṇi",
+            "english": "Your claim is to action alone, never to its fruits. Do not let the fruit of action be your motive, and do not become attached to inaction."
+          },
+          {
+            "reference": "2.48",
+            "roman": "yoga-sthaḥ kuru karmāṇi saṅgaṃ tyaktvā dhanañjaya\nsiddhy-asiddhyoḥ samo bhūtvā samatvaṃ yoga ucyate",
+            "english": "Act with steadiness in yoga, Dhanañjaya, letting go of attachment. Remain even-minded in success and failure. This evenness is called yoga."
+          },
+          {
+            "reference": "2.49",
+            "roman": "dūreṇa hy avaraṃ karma buddhi-yogād dhanañjaya\nbuddhau śaraṇam anviccha kṛpaṇāḥ phala-hetavaḥ",
+            "english": "Action done for its fruits falls far short of the yoga of discernment, Dhanañjaya. Seek refuge in discernment. Those who act for the fruits are pitiable."
+          },
+          {
+            "reference": "2.50",
+            "roman": "buddhi-yukto jahātīha ubhe sukṛta-duṣkṛte\ntasmād yogāya yujyasva yogaḥ karmasu kauśalam",
+            "english": "One grounded in discernment sets aside both good and bad deeds here. So devote yourself to yoga. Yoga is skill in action."
+          }
+        ],
+        "3": [
+          {
+            "reference": "3.19",
+            "roman": "tasmād asaktaḥ satataṃ kāryaṃ karma samācara\nasakto hy ācaran karma param āpnoti pūruṣaḥ",
+            "english": "So always perform the work that should be done, without attachment. A person who acts without attachment attains the highest."
+          },
+          {
+            "reference": "3.20",
+            "roman": "karmaṇaiva hi saṃsiddhim āsthitā janakādayaḥ\nloka-saṃgraham evāpi sampaśyan kartum arhasi",
+            "english": "Janaka and others attained perfection through action itself. You should also act with the welfare of the world in view."
+          },
+          {
+            "reference": "3.21",
+            "roman": "yad yad ācarati śreṣṭhas tat tad evetaro janaḥ\nsa yat pramāṇaṃ kurute lokas tad anuvartate",
+            "english": "Whatever an exemplary person does, others do likewise. The world follows the standard that person sets."
+          }
+        ]
+      }
+    }
+  }
+}
